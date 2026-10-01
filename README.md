@@ -4,7 +4,7 @@ Predicting monthly grid-electricity use for about 1,650 City of Toronto faciliti
 
 **Tools:** Python · pandas · NumPy · Matplotlib · seaborn · scikit-learn
 
-> ⚠️ **Known issue (fix in progress):** The current model results (R² ≈ 0.99) are inflated by **data leakage**. Several engineered features, `kWh_per_sqft`, `usage_per_occupancy` and the per-property usage statistics, are calculated from the target variable itself. A corrected version with leak-free features and a time-based train/test split is coming in a pull request.
+> **Update:** the first version reported R² ≈ 0.99, but that result came from **data leakage**: several features were calculated from the target. The modelling was rebuilt with leak-free features and a time-based train/test split. See the [pull request](../../pulls?q=is%3Apr) for the full before/after.
 
 ## Business problem
 
@@ -28,8 +28,26 @@ After filtering to **Electric – Grid (kWh)** meters, the modelling dataset has
 1. **Cleaning.** Converted text placeholders ("Not Available", "N/A") to missing values, fixed data types, removed 91 negative usage readings, and filtered to grid-electricity meters.
 2. **Merging.** Joined meter readings to property characteristics.
 3. **Exploratory analysis.** Usage distribution and outliers, usage vs. floor area, usage by property type, correlations, and seasonal patterns.
-4. **Feature engineering.** Season flags, intensity features, per-property statistics, one-hot encoded property type, and standard scaling.
-5. **Modelling.** Ridge regression as a baseline and a Random Forest tuned with GridSearchCV.
+4. **Feature engineering.** Season flags, property type, and **lag features** (usage 1 and 2 months back, 3-month rolling average) that only look at past months.
+5. **Modelling.** A naive "same as last month" baseline, Ridge regression, a Random Forest tuned with `TimeSeriesSplit`, and a Random Forest that predicts the % change from last month. Trained on Jan–Aug 2022, tested on Sep–Nov 2022.
+
+## Results
+
+Test period: September–November 2022 (4,933 property-months not seen during training).
+
+| Approach | MAE (kWh) | R² |
+|---|---|---|
+| Original version (data leakage) | 4,349 | 0.99 ❌ not valid |
+| Random Forest, building + season only | 54,613 | 0.79 |
+| Random Forest, with usage history | 10,405 | 0.97 |
+| Random Forest, predicting % change | 8,582 | 0.988 |
+| **Baseline: "same as last month"** | **8,156** | **0.989** |
+
+**Key findings**
+
+- **Past usage is the strongest predictor by far.** Last month's usage accounts for over 80% of the Random Forest's feature importance. Without usage history, R² drops from 0.97 to 0.79.
+- **No model beat the naive baseline.** These facilities use electricity very consistently from month to month, and with only 11 months of data the models can't learn yearly seasonality.
+- **What would help:** two or more years of history ("same month last year"), weather data (heating and cooling degree-days), and separate handling for the few very large facilities that cause most of the error.
 
 ## How to run
 
