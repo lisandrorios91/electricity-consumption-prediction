@@ -60,6 +60,12 @@ jupyter notebook electricity_consumption.ipynb
 
 ## Team
 
+## My contributions
+
+- **Data loading and cleaning:** loaded the four ENERGY STAR datasets, standardized missing-value placeholders, fixed data types, removed duplicates and negative readings, and filtered to grid-electricity meters.
+- **Visualizations:** built the charts in section 11: floor area distribution, usage vs. cost outlier check, average usage per property, energy intensity (kWh per sq ft), and seasonal trends by property type.
+- **Post-project review:** revised the modelling to remove data leakage and add a time-based split and baseline comparison ([PR #1](../../pull/1)).
+
 Group project, Master of Data Analytics, University of Niagara Falls Canada.
 
 Maria Alejandra Boada Rodriguez · Yovanni Rojas Cardona · Daniel Olmedo Zapata Gaibor · **Lisandro Rios**
